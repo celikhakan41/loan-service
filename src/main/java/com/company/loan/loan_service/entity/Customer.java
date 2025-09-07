@@ -1,19 +1,19 @@
 package com.company.loan.loan_service.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-@Entity
-@Table(name = "customers")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor @AllArgsConstructor @Builder
+@ToString(exclude = {"loans"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity @Table(name = "customers")
 public class Customer {
     
     @Id
@@ -29,18 +29,19 @@ public class Customer {
     @NotBlank(message = "Surname cannot be blank")
     @Size(min = 2, max = 50, message = "Surname must be between 2 and 50 characters")
     private String surname;
-    
-    @Column(nullable = false)
+
+    @Column(nullable = false, precision = 19, scale = 2)
     @NotNull(message = "Credit limit cannot be null")
     @DecimalMin(value = "0.0", inclusive = false, message = "Credit limit must be positive")
     private BigDecimal creditLimit;
-    
-    @Column(nullable = false)
+
+    @Column(nullable = false, precision = 19, scale = 2)
     @NotNull(message = "Used credit limit cannot be null")
     @DecimalMin(value = "0.0", message = "Used credit limit cannot be negative")
     private BigDecimal usedCreditLimit = BigDecimal.ZERO;
     
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore //Added for risk of infinite loop in customer-loan relationship
     private List<Loan> loans;
     
     public BigDecimal getAvailableCreditLimit() {

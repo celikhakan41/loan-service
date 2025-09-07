@@ -27,12 +27,14 @@ public class LoanInstallment {
     
     @Column(nullable = false, precision = 19, scale = 2)
     @NotNull(message = "Amount cannot be null")
+    @DecimalMin(value = "0.01", message = "Amount must be positive")
     private BigDecimal amount;
-    
+
     @Column(nullable = false, precision = 19, scale = 2)
     @NotNull(message = "Paid amount cannot be null")
+    @DecimalMin(value = "0.0", message = "Paid amount cannot be negative")
     private BigDecimal paidAmount = BigDecimal.ZERO;
-    
+
     @Column(nullable = false)
     @NotNull(message = "Due date cannot be null")
     private LocalDate dueDate;
@@ -53,11 +55,11 @@ public class LoanInstallment {
             isPaid = Boolean.FALSE;
         }
     }
-    
+
     public BigDecimal getRemainingAmount() {
         return amount.subtract(paidAmount);
     }
-    
+
     public long getDaysFromDueDate(LocalDate paymentDate) {
         return java.time.temporal.ChronoUnit.DAYS.between(dueDate, paymentDate);
     }
