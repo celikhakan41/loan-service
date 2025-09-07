@@ -17,7 +17,8 @@ public interface LoanInstallmentRepository extends JpaRepository<LoanInstallment
     @Query("SELECT li FROM LoanInstallment li WHERE li.loan.id = :loanId AND li.isPaid = false " +
            "AND li.dueDate <= :maxDueDate ORDER BY li.dueDate ASC")
     List<LoanInstallment> findUnpaidInstallmentsWithinPaymentWindow(
-        @Param("loanId") Long loanId, 
+        @Param("loanId") Long loanId,
+        @Param("paymentDate") LocalDate paymentDate,
         @Param("maxDueDate") LocalDate maxDueDate
     );
 

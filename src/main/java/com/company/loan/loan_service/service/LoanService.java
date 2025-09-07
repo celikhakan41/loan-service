@@ -112,7 +112,10 @@ public class LoanService {
     private PaymentResponse executePaymentAlgorithm(Loan loan, PaymentRequest request) {
         LocalDate maxPaymentWindow = request.getPaymentDate().plusMonths(3);
         List<LoanInstallment> unpaidInstallments = installmentRepository
-            .findUnpaidInstallmentsWithinPaymentWindow(loan.getId(), maxPaymentWindow);
+            .findUnpaidInstallmentsWithinPaymentWindow(
+                    loan.getId(),
+                    request.getPaymentDate(),
+                    maxPaymentWindow);
         
         if (unpaidInstallments.isEmpty()) {
             throw PaymentException.noInstallmentsAvailable();
