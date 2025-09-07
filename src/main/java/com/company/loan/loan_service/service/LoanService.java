@@ -33,9 +33,6 @@ public class LoanService {
     public LoanResponse createLoan(CreateLoanRequest request) {
         log.info("Creating loan for customer {} with amount {}", request.getCustomerId(), request.getLoanAmount());
         
-        if (!isValidInstallmentCount(request.getNumberOfInstallmentAsInteger())) {
-            throw new InvalidInstallmentCountException(request.getNumberOfInstallmentAsInteger());
-        }
         
         Customer customer = customerRepository.findById(request.getCustomerId())
             .orElseThrow(() -> new CustomerNotFoundException(request.getCustomerId()));
@@ -51,6 +48,7 @@ public class LoanService {
                 .loanAmount(totalLoanAmount)
                 .numberOfInstallment(request.getNumberOfInstallmentAsInteger())
                 .createDate(LocalDate.now())
+                .interestRate(request.getInterestRate())
                 .build();
         
         loan = loanRepository.save(loan);
@@ -257,9 +255,6 @@ public class LoanService {
         return createDate.plusMonths(1).withDayOfMonth(1);
     }
     
-    private boolean isValidInstallmentCount(Integer count) {
-        return count != null && (count == 6 || count == 9 || count == 12 || count == 24);
-    }
     
     @Transactional(readOnly = true)
     public boolean isLoanOwnedByCustomer(Long loanId, Long customerId) {
