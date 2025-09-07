@@ -1,4 +1,4 @@
-# 🏦 Spring Boot Loan Management API
+# Spring Boot Loan Management API
 
 A comprehensive REST API for bank employees to manage customer loans with advanced business logic, JWT authentication, and production-ready features.
 
@@ -325,7 +325,7 @@ This project is licensed under the Apache License 2.0 - see the LICENSE file for
 ## 📞 Support
 
 For support and questions, please contact:
-- Email: support@loan-service.com
+- Email: celikhakan41@yahoo.com
 - Documentation: [Swagger UI](http://localhost:8081/swagger-ui.html)
 
 ---
