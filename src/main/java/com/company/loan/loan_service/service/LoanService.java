@@ -116,11 +116,12 @@ public class LoanService {
     }
     
     private PaymentResponse executePaymentAlgorithm(Loan loan, PaymentRequest request) {
-        LocalDate maxPaymentWindow = request.getPaymentDate().plusMonths(3);
+        // Only allow payments for installments due within 3 calendar months from payment date
+        LocalDate maxPaymentWindow = request.getPaymentDate().plusMonths(2).withDayOfMonth(
+            request.getPaymentDate().plusMonths(2).lengthOfMonth());
         List<LoanInstallment> unpaidInstallments = installmentRepository
             .findUnpaidInstallmentsWithinPaymentWindow(
                     loan.getId(),
-                    request.getPaymentDate(),
                     maxPaymentWindow);
         
         if (unpaidInstallments.isEmpty()) {

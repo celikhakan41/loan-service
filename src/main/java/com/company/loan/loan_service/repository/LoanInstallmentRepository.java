@@ -12,13 +12,13 @@ import java.util.List;
 @Repository
 public interface LoanInstallmentRepository extends JpaRepository<LoanInstallment, Long> {
     
-    List<LoanInstallment> findByLoanId(Long loanId);
+    @Query("SELECT li FROM LoanInstallment li JOIN FETCH li.loan WHERE li.loan.id = :loanId")
+    List<LoanInstallment> findByLoanId(@Param("loanId") Long loanId);
 
     @Query("SELECT li FROM LoanInstallment li WHERE li.loan.id = :loanId AND li.isPaid = false " +
            "AND li.dueDate <= :maxDueDate ORDER BY li.dueDate ASC")
     List<LoanInstallment> findUnpaidInstallmentsWithinPaymentWindow(
         @Param("loanId") Long loanId,
-        @Param("paymentDate") LocalDate paymentDate,
         @Param("maxDueDate") LocalDate maxDueDate
     );
 
