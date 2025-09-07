@@ -99,6 +99,14 @@ public class LoanService {
         log.info("Processing payment for loan {} - amount: {}, date: {}", 
                 loanId, request.getPaymentAmount(), request.getPaymentDate());
         
+        if (request.getPaymentAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw PaymentException.invalidPaymentAmount();
+        }
+        
+        if (request.getPaymentDate().isAfter(LocalDate.now())) {
+            throw PaymentException.invalidPaymentDate();
+        }
+        
         Loan loan = loanRepository.findById(loanId)
             .orElseThrow(() -> new LoanNotFoundException(loanId));
         
