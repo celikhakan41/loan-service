@@ -2,6 +2,7 @@ package com.company.loan.loan_service.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CreateLoanRequest {
     
     @NotNull(message = "Customer ID cannot be null")
@@ -32,6 +34,13 @@ public class CreateLoanRequest {
     private BigDecimal interestRate;
     
     public Integer getNumberOfInstallmentAsInteger() {
-        return Integer.valueOf(numberOfInstallment);
+        if (numberOfInstallment == null) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(numberOfInstallment);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

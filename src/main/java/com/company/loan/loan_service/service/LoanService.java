@@ -33,6 +33,7 @@ public class LoanService {
     public LoanResponse createLoan(CreateLoanRequest request) {
         log.info("Creating loan for customer {} with amount {}", request.getCustomerId(), request.getLoanAmount());
         
+        validateInstallmentCount(request.getNumberOfInstallment());
         
         Customer customer = customerRepository.findById(request.getCustomerId())
             .orElseThrow(() -> new CustomerNotFoundException(request.getCustomerId()));
@@ -262,5 +263,15 @@ public class LoanService {
         return loanRepository.findById(loanId)
             .map(loan -> loan.getCustomer().getId().equals(customerId))
             .orElse(false);
+    }
+    
+    private void validateInstallmentCount(String numberOfInstallment) {
+        if (numberOfInstallment == null) {
+            return;
+        }
+        
+        if (!numberOfInstallment.matches("^(6|9|12|24)$")) {
+            throw new InvalidInstallmentCountException(Integer.valueOf(numberOfInstallment));
+        }
     }
 }

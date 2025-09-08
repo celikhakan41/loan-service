@@ -38,6 +38,7 @@ public class Customer {
     @Column(nullable = false, precision = 19, scale = 2)
     @NotNull(message = "Used credit limit cannot be null")
     @DecimalMin(value = "0.0", message = "Used credit limit cannot be negative")
+    @Builder.Default
     private BigDecimal usedCreditLimit = BigDecimal.ZERO;
     
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
