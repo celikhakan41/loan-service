@@ -86,10 +86,16 @@ The application will start on `http://localhost:8081`
 
 ### Initial Setup
 
-The application automatically creates sample customers on startup:
-- Customer ID 1: Hakan Celik (Credit Limit: $100,000)
-- Customer ID 2: Ricardo Quaresma (Credit Limit: $50,000)
-- Customer ID 3: Admin User (Credit Limit: $1,000,000)
+The application automatically creates demo users and sample customers on startup:
+
+**Demo Users Created:**
+- **Admin User**: `admin` / `admin123` (Full system access)
+- **Customer User 1**: `customer1` / `customer123` (Linked to John Doe)
+- **Customer User 2**: `customer2` / `customer123` (Linked to Jane Smith)
+
+**Sample Customers Created:**
+- John Doe (Credit Limit: $50,000) - Linked to customer1 user
+- Jane Smith (Credit Limit: $30,000) - Linked to customer2 user
 
 ## 📚 API Documentation
 
@@ -120,7 +126,14 @@ Access H2 database console at: `http://localhost:8081/h2-console`
 
 ## 🔐 Authentication
 
-The API uses JWT Bearer token authentication. Get a token by calling the login endpoint:
+The API uses JWT Bearer token authentication with proper Spring Security integration. Get a token by calling the login endpoint:
+
+### Authentication Features
+- **Database-driven authentication** using Spring Security UserDetailsService
+- **BCrypt password encryption** for secure password storage  
+- **JWT token-based authorization** with role-based access control
+- **User entity management** with roles (ADMIN, CUSTOMER)
+- **Customer linkage** for customer users to access their own data
 
 ### Demo Users
 
@@ -132,14 +145,21 @@ The API uses JWT Bearer token authentication. Get a token by calling the login e
 }
 ```
 
-**Customer User:**
+**Customer Users:**
 ```json
 {
   "username": "customer1",
   "password": "customer123"
 }
 ```
-*Note: customer1 corresponds to Customer ID 1, customer2 to Customer ID 2, etc.*
+```json
+{
+  "username": "customer2", 
+  "password": "customer123"
+}
+```
+
+*Note: Customer users are automatically linked to their respective customer records in the database.*
 
 ### Using the Token
 
@@ -179,6 +199,22 @@ Effective Amount = $1,000 - $5 = $995
 ```
 
 ## 🗄 Database Schema
+
+### User Table
+```sql
+users (
+  id BIGINT PRIMARY KEY,
+  username VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  enabled BOOLEAN NOT NULL,
+  customer_id BIGINT
+)
+
+user_roles (
+  user_id BIGINT NOT NULL,
+  role VARCHAR(255) NOT NULL
+)
+```
 
 ### Customer Table
 ```sql
