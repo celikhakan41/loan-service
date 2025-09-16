@@ -20,7 +20,6 @@ public class PaymentRequest {
     @Digits(integer = 17, fraction = 2, message = "Payment amount format is invalid")
     private BigDecimal paymentAmount;
     
-    @NotNull(message = "Payment date cannot be null")
     @PastOrPresent(message = "Payment date cannot be in the future")
     private LocalDate paymentDate;
 }

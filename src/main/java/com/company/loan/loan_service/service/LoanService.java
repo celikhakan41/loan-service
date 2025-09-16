@@ -34,6 +34,7 @@ public class LoanService {
         log.info("Creating loan for customer {} with amount {}", request.getCustomerId(), request.getLoanAmount());
 
         validateInstallmentCount(request.getNumberOfInstallment());
+        validateInterestRate(request.getInterestRate());
 
         Customer customer = customerRepository.findById(request.getCustomerId())
             .orElseThrow(() -> new CustomerNotFoundException(request.getCustomerId()));
@@ -102,7 +103,8 @@ public class LoanService {
             throw PaymentException.invalidPaymentAmount();
         }
 
-        if (request.getPaymentDate().isAfter(LocalDate.now())) {
+        LocalDate paymentDate = request.getPaymentDate() != null ? request.getPaymentDate() : LocalDate.now();
+        if (paymentDate.isAfter(LocalDate.now())) {
             throw PaymentException.invalidPaymentDate();
         }
 
@@ -113,12 +115,12 @@ public class LoanService {
             throw PaymentException.loanAlreadyPaid();
         }
 
-        return executePaymentAlgorithm(loan, request);
+        return executePaymentAlgorithm(loan, request, paymentDate);
     }
 
-    private PaymentResponse executePaymentAlgorithm(Loan loan, PaymentRequest request) {
+    private PaymentResponse executePaymentAlgorithm(Loan loan, PaymentRequest request, LocalDate paymentDate) {
         // Only allow payments for installments due within 3 calendar months from payment date
-        LocalDate maxPaymentWindow = request.getPaymentDate().plusMonths(3);
+        LocalDate maxPaymentWindow = paymentDate.plusMonths(3);
         List<LoanInstallment> unpaidInstallments = installmentRepository
             .findUnpaidInstallmentsWithinPaymentWindow(
                     loan.getId(),
@@ -144,13 +146,12 @@ public class LoanService {
 
             BigDecimal originalAmount = installment.getRemainingAmount();
             PaymentResponse.InstallmentPaymentDetail detail = calculateInstallmentPayment(
-                installment, originalAmount, request.getPaymentDate());
+            installment, originalAmount, paymentDate);
 
             if (remainingPayment.compareTo(detail.getEffectiveAmount()) >= 0) {
-                // Can pay this installment fully
                 installment.setPaidAmount(installment.getAmount());
                 installment.setIsPaid(true);
-                installment.setPaymentDate(request.getPaymentDate());
+                installment.setPaymentDate(paymentDate);
 
                 remainingPayment = remainingPayment.subtract(detail.getEffectiveAmount());
                 totalSpent = totalSpent.add(detail.getEffectiveAmount());
@@ -216,12 +217,12 @@ public class LoanService {
             paymentType = "ON_TIME";
         }
 
-        BigDecimal effectiveAmount = originalAmount.subtract(discount).add(penalty);
+        BigDecimal effectiveAmount = originalAmount.subtract(discount).add(penalty).setScale(2, RoundingMode.HALF_UP);
 
         PaymentResponse.InstallmentPaymentDetail detail = new PaymentResponse.InstallmentPaymentDetail();
         detail.setInstallmentId(installment.getId());
         detail.setOriginalAmount(originalAmount);
-        detail.setEffectiveAmount(effectiveAmount.setScale(2, RoundingMode.HALF_UP));
+        detail.setEffectiveAmount(effectiveAmount);
         detail.setDiscount(discount.setScale(2, RoundingMode.HALF_UP));
         detail.setPenalty(penalty.setScale(2, RoundingMode.HALF_UP));
         detail.setPaymentType(paymentType);
@@ -303,6 +304,13 @@ public class LoanService {
 
         if (!numberOfInstallment.matches("^(6|9|12|24)$")) {
             throw new InvalidInstallmentCountException(Integer.valueOf(numberOfInstallment));
+        }
+    }
+
+    private void validateInterestRate(BigDecimal interestRate) {
+        if (interestRate == null || interestRate.compareTo(BigDecimal.valueOf(0.1)) < 0
+                || interestRate.compareTo(BigDecimal.valueOf(0.5)) > 0) {
+            throw new IllegalArgumentException("Interest rate must be between 0.1 and 0.5");
         }
     }
 }
