@@ -228,26 +228,44 @@ public class LoanService {
         
         return detail;
     }
-    
+
     private void generateInstallments(Loan loan, BigDecimal totalAmount) {
+        int numberOfInstallments = loan.getNumberOfInstallment();
+
+        // Standart bir taksit tutarını hesapla
         BigDecimal installmentAmount = totalAmount.divide(
-            BigDecimal.valueOf(loan.getNumberOfInstallment()), 2, RoundingMode.HALF_UP);
-        
+                BigDecimal.valueOf(numberOfInstallments), 2, RoundingMode.HALF_UP);
+
         List<LoanInstallment> installments = new ArrayList<>();
         LocalDate currentDueDate = getFirstDayOfNextMonth(loan.getCreateDate());
-        
-        for (int i = 0; i < loan.getNumberOfInstallment(); i++) {
+
+        BigDecimal totalCalculatedAmount = BigDecimal.ZERO;
+
+        // İlk (n-1) taksiti oluştur
+        for (int i = 0; i < numberOfInstallments - 1; i++) {
             LoanInstallment installment = new LoanInstallment();
             installment.setLoan(loan);
             installment.setAmount(installmentAmount);
             installment.setPaidAmount(BigDecimal.ZERO);
             installment.setDueDate(currentDueDate);
             installment.setIsPaid(false);
-            
+
             installments.add(installment);
             currentDueDate = currentDueDate.plusMonths(1);
+            totalCalculatedAmount = totalCalculatedAmount.add(installmentAmount);
         }
-        
+
+        // Son taksiti, kalan farkı içerecek şekilde hesapla
+        BigDecimal lastInstallmentAmount = totalAmount.subtract(totalCalculatedAmount);
+
+        LoanInstallment lastInstallment = new LoanInstallment();
+        lastInstallment.setLoan(loan);
+        lastInstallment.setAmount(lastInstallmentAmount);
+        lastInstallment.setPaidAmount(BigDecimal.ZERO);
+        lastInstallment.setDueDate(currentDueDate);
+        lastInstallment.setIsPaid(false);
+        installments.add(lastInstallment);
+
         installmentRepository.saveAll(installments);
         loan.setInstallments(installments);
     }
