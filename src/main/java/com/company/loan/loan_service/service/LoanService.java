@@ -232,7 +232,7 @@ public class LoanService {
     private void generateInstallments(Loan loan, BigDecimal totalAmount) {
         int numberOfInstallments = loan.getNumberOfInstallment();
 
-        // Standart bir taksit tutarını hesapla
+        // calculate standard installment amount
         BigDecimal installmentAmount = totalAmount.divide(
                 BigDecimal.valueOf(numberOfInstallments), 2, RoundingMode.HALF_UP);
 
@@ -241,7 +241,7 @@ public class LoanService {
 
         BigDecimal totalCalculatedAmount = BigDecimal.ZERO;
 
-        // İlk (n-1) taksiti oluştur
+        // create first (n-1) installments
         for (int i = 0; i < numberOfInstallments - 1; i++) {
             LoanInstallment installment = new LoanInstallment();
             installment.setLoan(loan);
@@ -255,7 +255,7 @@ public class LoanService {
             totalCalculatedAmount = totalCalculatedAmount.add(installmentAmount);
         }
 
-        // Son taksiti, kalan farkı içerecek şekilde hesapla
+        // calculate last installment to cover any rounding differences
         BigDecimal lastInstallmentAmount = totalAmount.subtract(totalCalculatedAmount);
 
         LoanInstallment lastInstallment = new LoanInstallment();
